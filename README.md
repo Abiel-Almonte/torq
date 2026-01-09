@@ -1,3 +1,4 @@
+Build complex systems from simple pieces:
 ```python
 import torq as tq
 
@@ -13,5 +14,17 @@ system = tq.Sequential(
 
 # Build DAG, optimize lazily
 system = tq.compile(system)
-system.run()
+system.run(iters=-1)
+```
+
+Teach torq how to call your own objects:
+```python
+from visionrt import Camera
+
+tq.register(cls=Camera, adapter=lambda x: next(x.stream()))
+
+system = tq.Sequential(
+    Camera("/dev/video0"),
+    ...
+)
 ```
