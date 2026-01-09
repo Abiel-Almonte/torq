@@ -78,4 +78,4 @@ class Functional(Pipe):
     def __repr__(self) -> str:
         fn_name = getattr(self._inner, "__name__", "function")
         sig = inspect.signature(self._inner)
-        return f"Funtional(fn={fn_name}{sig})"
+        return f"Functional(fn={fn_name}{sig})"
