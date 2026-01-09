@@ -1,3 +1,5 @@
+`torq` **- Graph compiler for deterministic inference.**
+
 Build complex systems from simple pieces:
 ```python
 import torq as tq
