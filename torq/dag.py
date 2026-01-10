@@ -4,63 +4,9 @@ from collections import defaultdict
 from .runnable import Runnable
 from .pipes import Pipe
 from .pipeline import System, Pipeline, Sequential, Concurrent
-from .utils import logging
+from .nodes import DAGNode
 
-
-class StreamRoundRobin:
-    def __init__(self, n_streams) -> None:
-        self.n_streams = n_streams
-        self._streams = [x for x in range(n_streams)]
-        self._idx = 0
-
-    def __next__(self) -> int:
-        stream = self._streams[self._idx]
-        self._idx = (self._idx + 1) % self.n_streams
-        return stream
-
-
-stream_roundrobin = StreamRoundRobin(10)
-get_next_streamid = lambda: next(stream_roundrobin)
-
-
-class DAGNode:
-    def __init__(
-        self, node_id: str, stream_id: int, pipe: Pipe, args: Tuple["DAGNode", ...]
-    ):
-        self.node_id = node_id
-        self.stream_id = stream_id
-        self.pipe = pipe
-        self.args = args
-
-    def __call__(self, *args):
-        return self.pipe(*args)
-
-    def __hash__(self) -> int:
-        return hash(self.node_id)
-
-    def __repr__(self) -> str:
-        def _repr(node: DAGNode, level=0):
-            space = "\t"
-            indent = space * level
-
-            s = f"{indent}DAGNode(\n"
-            s += f"{indent}{space}node_id={node.node_id},\n"
-            s += f"{indent}{space}stream={node.stream_id},\n"
-            s += f"{indent}{space}pipe={node.pipe.__class__.__name__},\n"
-
-            if node.args:
-                s += f"{indent}{space}args=(\n"
-                for arg in node.args:
-                    s += _repr(arg, level + 2) + ",\n"
-                s += f"{indent}{space})\n"
-            else:
-                s += f"{indent}{space}args=()\n"
-
-            s += f"{indent})"
-            return s
-
-        return _repr(self)
-
+from .utils import resources, logging
 
 class DAG(Runnable):
     def __init__(self) -> None:
@@ -114,7 +60,7 @@ class DAG(Runnable):
                             stream_id=(
                                 stream_id
                                 if isinstance(pipe, Concurrent)
-                                else get_next_streamid()
+                                else resources.get_next_streamid()
                             ),
                         )
 
@@ -198,9 +144,8 @@ class DAG(Runnable):
                 return
 
             # visit up the tree through the args
-            if len(node.args) > 0:
-                for arg in node.args:
-                    yield from visit(arg)
+            for arg in node.args:
+                yield from visit(arg)
 
             yield node
             visited.add(node)
