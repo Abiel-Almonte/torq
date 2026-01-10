@@ -19,6 +19,9 @@ class DAGNode(Runnable):
     def __hash__(self) -> int:
         return hash(self.node_id)
 
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, DAGNode) and self.node_id == other.node_id
+
     def __repr__(self) -> str:
         def _repr(node: DAGNode, level=0):
             space = "\t"
