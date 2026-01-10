@@ -1,4 +1,4 @@
-from typing import Callable, Any, TypeAlias
+from typing import Any, TypeAlias
 from abc import ABC, abstractmethod
 
 from .runnable import Runnable
@@ -18,6 +18,11 @@ class Opaque:
             pipe, outs = Pipe.from_opaque(self._inner, args)
         self.materialization_callback(pipe)
         return outs
+
+    def __repr__(self) -> str:
+        if self.is_pipeline:
+            return repr(self._inner)
+        return f"Opaque(inner={self._inner})"
 
 
 class Pipeline(ABC, Runnable):
