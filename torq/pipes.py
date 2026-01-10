@@ -3,16 +3,28 @@ from typing import Tuple, Callable, Any
 
 import inspect
 from .registry import get_registered_types, get_adapter
+from .runnable import Runnable
 
 
-class Pipe:
+class Pipe(Runnable):
     _inner_name = "inner"
 
-    def __init__(self, x: Any) -> None:
-        assert isinstance(x, get_registered_types())
-        self._inner = x
-        self._adapter: Callable[..., Any] = lambda x: x
-        self._takes_args: bool = True
+    def __init__(
+        self,
+        inner: Any,
+        caller: Callable[..., Any] = None,
+    ) -> None:
+        assert isinstance(inner, get_registered_types())
+        self._inner = inner
+
+        if caller is not None:
+            self.caller = caller
+        else:
+            adapter = get_adapter(inner)
+            if callable(adapter(inner)):
+                self.caller = lambda *args: adapter(inner)(*args)
+            else:
+                self.caller = lambda *_: adapter(inner)
 
     # duck type pipe
     @staticmethod
@@ -20,43 +32,28 @@ class Pipe:
         if not isinstance(opaque, get_registered_types()):
             raise TypeError(f"Pipeline contains an unknown opaque type {type(opaque)}")
 
-        adapter = get_adapter(opaque)
-        takes_args = callable(adapter(opaque))
-
-        if takes_args:
-            outs = adapter(opaque)(*ins)
-        else:
-            outs = adapter(opaque)
+        pipe = Pipe(opaque)
+        outs = pipe(*ins)
 
         has_input = ins is not None and len(ins) != 0
         has_output = outs is not None and len(outs) != 0
 
         if not isinstance(opaque, FunctionType):
             if not has_input:
-                pipe = Input(opaque)
+                pipe.__class__ = Input
             elif not has_output:
-                pipe = Output(opaque)
+                pipe.__class__ = Output
             elif has_input and has_output:
-                pipe = Model(opaque)
+                pipe.__class__ = Model
             else:
-                raise TypeError(
-                    f"Unable to reconcile {opaque} into an input, output, model, or functional pipe"
-                )
+                raise TypeError(f"Unable to reconcile {opaque}")
         else:
-            pipe = Functional(opaque)
-
-        pipe._adapter = adapter
-        pipe._takes_args = takes_args
+            pipe.__class__ = Functional
 
         return pipe, outs
 
-    def _step(self, *args: Any) -> Any:
-        if self._takes_args:
-            return self._adapter(self._inner)(*args)
-        return self._adapter(self._inner)
-
     def __call__(self, *args: Any) -> Any:
-        return self._step(*args)
+        return self.caller(*args)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self._inner_name}={self._inner})"
