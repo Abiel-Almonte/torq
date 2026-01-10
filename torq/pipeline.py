@@ -45,13 +45,13 @@ class Pipeline(ABC, Runnable):
             yield x
 
     @abstractmethod
-    def _inference_impl(self, *args: Any) -> Any: ...
+    def _call_impl(self, *args: Any) -> Any: ...
 
     def _step(self, *args: Any) -> Any:
-        return self._inference_impl(*args)
+        return self._call_impl(*args)
 
-    def _materialize(self, *args: Any) -> Any:
-        outs = self._inference_impl(*args)
+    def _materialization_step(self, *args: Any) -> Any:
+        outs = self._call_impl(*args)
         self._materialized = True
         return outs
 
@@ -76,7 +76,7 @@ class Pipeline(ABC, Runnable):
 
 class Sequential(Pipeline):
 
-    def _inference_impl(self, *args: Any) -> Any:
+    def _call_impl(self, *args: Any) -> Any:
 
         x = args
         for fn in self.container:
@@ -90,7 +90,7 @@ class Sequential(Pipeline):
 
 class Concurrent(Pipeline):
 
-    def _inference_impl(self, *args: Any) -> Any:
+    def _call_impl(self, *args: Any) -> Any:
 
         outs = tuple()
         for fn in self.container:
