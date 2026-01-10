@@ -30,3 +30,11 @@ system = tq.Sequential(
     ...
 )
 ```
+
+Hook in your own graph optimizations:
+```python
+@tq.register_backend
+def transform_dag(graph):
+    ...
+    return transformed_graph
+```
