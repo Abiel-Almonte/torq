@@ -1,6 +1,7 @@
 from typing import Callable, Any, TypeAlias
 from abc import ABC, abstractmethod
 
+from .runnable import Runnable
 from .pipes import Pipe
 
 
@@ -19,7 +20,7 @@ class Opaque:
         return outs
 
 
-class Pipeline(ABC):
+class Pipeline(ABC, Runnable):
     def __init__(self, *args: Any) -> None:  # stages
         self._opaques = tuple()
         self._pipes = []  # will be filled out lazily
@@ -57,20 +58,7 @@ class Pipeline(ABC):
     def __call__(self, *args: Any) -> Any:
         if self._materialized:
             return self._step(*args)
-        return self._materialize(*args)
-
-    def run(self, *args, callback: Callable = lambda x: x, n: int = -1) -> None:
-        try:
-
-            if n == -1:  # indefinite
-                while True:
-                    callback(self(*args))
-            else:
-                for _ in range(n):
-                    callback(self(*args))
-
-        except KeyboardInterrupt:
-            return
+        return self._materialization_step(*args)
 
     def __repr__(self) -> str:
         lines = [f"{self.__class__.__name__}("]

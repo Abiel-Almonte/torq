@@ -1,8 +1,9 @@
 from typing import Tuple, Union
 from collections import defaultdict
 
-from .pipeline import System, Pipeline, Sequential, Concurrent
+from .runnable import Runnable
 from .pipes import Pipe
+from .pipeline import System, Pipeline, Sequential, Concurrent
 from .utils import logging
 
 
@@ -39,7 +40,7 @@ class DAGNode:
         return _repr(self)
 
 
-class DAG:
+class DAG(Runnable):
     def __init__(self) -> None:
         self.nodes: Tuple[DAGNode, ...] = tuple()
         self.leaves: Tuple[DAGNode, ...] = tuple()
@@ -158,18 +159,6 @@ class DAG:
 
     def __call__(self, *args):
         return self._execute(self.leaves, *args)
-
-    def run(self, iters: int = -1, *args):
-        try:
-            if iters == -1:
-                while True:
-                    self(*args)
-
-            else:
-                for _ in range(iters):
-                    self(*args)
-        except KeyboardInterrupt:
-            logging.info("Running system has been terminated")
 
     def __iter__(self):
         visited = set()
