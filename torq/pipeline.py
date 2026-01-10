@@ -28,14 +28,17 @@ class Opaque:
 class Pipeline(ABC, Runnable):
     def __init__(self, *args: Any) -> None:  # stages
         self._opaques = tuple()
-        self._pipes = []  # will be filled out lazily
+        self._pipes = tuple()  # will be filled out lazily
+
+        def register_pipe(pipe):
+            self._pipes += (pipe,)
 
         for arg in args:
             self._opaques += (
                 Opaque(
                     inner=arg,
                     is_pipeline=isinstance(arg, Pipeline),
-                    callback=lambda pipe: self._pipes.append(pipe),
+                    callback=register_pipe,
                 ),
             )
 
