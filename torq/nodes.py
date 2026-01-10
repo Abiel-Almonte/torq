@@ -1,9 +1,10 @@
 from typing import Tuple
 
+from .runnable import Runnable
 from .pipes import Pipe
 
 
-class DAGNode:
+class DAGNode(Runnable):
     def __init__(
         self, node_id: str, stream_id: int, pipe: Pipe, args: Tuple["DAGNode", ...]
     ):
