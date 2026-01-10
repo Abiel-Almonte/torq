@@ -5,6 +5,9 @@ import torch.nn as nn
 from torchvision.models import resnet50, ResNet50_Weights
 
 from visionrt import Camera
+from torq import config
+config.verbose = True
+
 import torq as tq
 
 model = (
@@ -51,7 +54,7 @@ system = tq.Sequential(
 system = tq.compile(system)
 system.run()
 
-print(system._graph)
+print(system)
 
 cam1.close()
 cam2.release()
