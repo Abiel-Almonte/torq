@@ -1,43 +1,63 @@
-from typing import Any, Union, Protocol
+from typing import Any, Union, Protocol, Optional, runtime_checkable
 
+from .runnable import Runnable
 from .pipeline import System
 from .dag import DAG
 
 
+@runtime_checkable
 class CompilerBackend(Protocol):
     def __call__(self, graph: DAG) -> DAG: ...
 
 
+_registered_backend: Optional[CompilerBackend] = None
+
+
+def register_backend(fn: CompilerBackend):
+    import inspect
+
+    sig = inspect.signature(fn)
+    n_params = len(list(sig.parameters.values()))
+
+    if n_params != 1 or not isinstance(fn, CompilerBackend):
+        raise TypeError(f"Object {fn} does not implement CompilerBackend protocol")
+
+    global _registered_backend
+    _registered_backend = fn
+    return fn
+
+
+def compile_graph(graph: DAG) -> DAG:
+    if _registered_backend is None:
+        raise RuntimeError("No compiler backend registered")
+    return _registered_backend(graph)
+
+
+@register_backend
 def torq_backend(graph: DAG) -> DAG:
-    return graph  # dummy
+    return graph
 
 
-class CompiledSystem:
-    def __init__(self, system: System, backend: CompilerBackend) -> None:
-        self._system = system
-        self._compile = backend
-        self._graph: Union[DAG, None] = None
+class CompiledSystem(Runnable):
+    def __init__(self, system: System) -> None:
+        self._inner: Union[System, DAG] = system
+        self.caller = self._compile_and_run
+        self.compiled = False
 
-    @property
-    def compiled(self) -> bool:
-        return self._graph is not None
+    def _compile_and_run(self, *args):
+        outs = self._inner(*args)  # run if already materialized
+        self._inner = compile_graph(graph=DAG.from_system(self._inner))
+
+        self.caller = self._inner
+        self.compiled = True
+        return outs
 
     def __call__(self, *args: Any) -> Any:
-        if not self.compiled:
-            ret = self._system(*args)  # run even if already materialized
-            self._graph = self._compile(graph=DAG.from_system(self._system))
-            return ret
+        return self.caller(*args)
 
-        return self._graph(*args)  # type: ignore
-
-    def run(self, iters: int = -1, *args):
-        if not self.compiled:
-            self(*args)  # compile, redundant but okay
-
-        return self._graph.run(iters, *args)  # type: ignore
+    def __repr__(self) -> str:
+        return repr(self._inner)
 
 
-def compile(
-    system: System, backend: CompilerBackend = torq_backend
-) -> CompiledSystem:  # lazy
-    return CompiledSystem(system=system, backend=backend)
+def compile(system: System) -> CompiledSystem:  # lazy
+    return CompiledSystem(system=system)
