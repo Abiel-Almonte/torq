@@ -31,14 +31,6 @@ system = tq.Sequential(
 )
 ```
 
-... or not:
-```
-system = tq.Sequential(
-    CallableObj(),
-    ...
-)
-```
-
 Hook in your own optimizations:
 ```python
 @tq.register_backend
@@ -47,11 +39,6 @@ def transform_dag(graph):
     return optimized_graph
 ```
 
-So small it can fit in your L1 cache:
-```sh
-$ du -bch .
-46K     total
-```  
 
 ---
 
