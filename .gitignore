@@ -1,3 +1,8 @@
+.clangd
+
 *.pyc
+*.egg-info
+*.so
+
 .venv/
 __pycache__/
