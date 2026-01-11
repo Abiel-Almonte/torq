@@ -2,7 +2,7 @@ from setuptools import setup, Extension
 
 
 ctorq_extension = Extension(
-    name="torq._torq",
+    name="torq.cuda._torq",
     sources=["csrc/torq.c"],
     include_dirs=[
         "./csrc",
@@ -15,7 +15,10 @@ ctorq_extension = Extension(
 
 setup(
     name="torq",
-    packages=["torq"],
-    package_data={"torq": ["*.pyi", "py.typed"]},
+    packages=["torq", "torq.cuda"],
+    package_data={
+        "torq": ["*.pyi", "py.typed"],
+        "torq.cuda": ["*.pyi", "py.typed"]
+    },
     ext_modules=[ctorq_extension]
 )
