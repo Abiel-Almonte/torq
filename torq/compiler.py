@@ -31,7 +31,7 @@ def compile_graph(graph: DAG) -> DAG:
     if _registered_backend is None:
         raise RuntimeError("No compiler backend registered")
     g = _registered_backend(graph)
-    g.semantic_lint() # structural lints like cycles/ orphans will surface naturally
+    g.semantic_lint()  # structural lints like cycles/ orphans will surface naturally
     return g
 
 

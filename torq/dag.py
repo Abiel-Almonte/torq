@@ -9,6 +9,7 @@ from .nodes import DAGNode
 from .utils import logging
 from . import config
 
+
 class DAG(Runnable):
     def __init__(self, nodes: Tuple[DAGNode, ...], leaves: Tuple[DAGNode, ...]) -> None:
         self.nodes = nodes
@@ -17,7 +18,7 @@ class DAG(Runnable):
     @staticmethod
     def from_system(system: System) -> "DAG":
         dag = DAG(*_build_dag_from_system(system))
-        dag.semantic_lint() # API make cycles and orphans impossible to occur.
+        dag.semantic_lint()  # API make cycles and orphans impossible to occur.
         return dag
 
     def semantic_lint(self):
@@ -94,7 +95,7 @@ def _build_dag_from_system(system: System):
         stream_id: int = 0,
         local_cnt: Optional[defaultdict] = None,
     ) -> Union[DAGNode, Tuple[DAGNode, ...]]:
-        
+
         if local_cnt is None:
             local_cnt = defaultdict(int)
 
@@ -130,7 +131,7 @@ def _build_dag_from_system(system: System):
                             if isinstance(pipe, Concurrent)
                             else assigner.get_next_streamid()
                         ),
-                        local_cnt=local_cnt
+                        local_cnt=local_cnt,
                     )
 
                     if not isinstance(out, tuple):
