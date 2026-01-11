@@ -170,6 +170,27 @@ static PyObject* get_executor_ptr(PyObject* self, PyObject *args){
     return PyLong_FromVoidPtr((void*)(*exec));
 }
 
+static PyObject* graph_launch(PyObject* self, PyObject *args){
+    PyObject* executor_capsule;
+    PyObject* stream_capsule;
+    
+    if (!PyArg_ParseTuple(args, "OO", &executor_capsule, &stream_capsule)) {
+        return NULL;
+    }
+    
+    cudaGraphExec_t* exec = (cudaGraphExec_t*)PyCapsule_GetPointer(executor_capsule, "cudaGraphExec_t");
+    if (!exec) {
+        return NULL;
+    }
+
+    cudaStream_t* stream = (cudaStream_t*)PyCapsule_GetPointer(stream_capsule, "cudaStream_t");
+    if (!stream) {
+        return NULL;
+    }
+
+    _CUDA_CHECK(cudaGraphLaunch(*exec, *stream), "Failed to launch graph");
+    Py_RETURN_NONE;
+}
 
 
 static PyMethodDef _torq_methods [] = {
