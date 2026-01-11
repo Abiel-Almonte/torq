@@ -31,10 +31,29 @@ system = tq.Sequential(
 )
 ```
 
-Hook in your own graph optimizations:
+... or not:
+```
+system = tq.Sequential(
+    CallableObj(),
+    ...
+)
+```
+
+Hook in your own optimizations:
 ```python
 @tq.register_backend
-def transform_dag(graph):
+def transform_dag(graph): 
     ...
-    return transformed_graph
+    return optimized_graph
 ```
+
+So small it can fit in your L1 cache:
+```sh
+$ du -bch .
+46K     total
+```  
+
+---
+
+
+**torq**, the compiler that packs more punch than it weighs.
