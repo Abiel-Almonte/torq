@@ -37,6 +37,21 @@ static PyObject* stream_create(PyObject* self, PyObject *args){
     return PyCapsule_New(stream, "cudaStream_t", stream_destroy);
 }
 
+static PyObject* get_stream_ptr(PyObject* self, PyObject *args){
+    PyObject* capsule;
+
+    if (!PyArg_ParseTuple(args, "O", &capsule)){
+        return NULL;
+    }
+
+    cudaStream_t* stream = (cudaStream_t*)PyCapsule_GetPointer(capsule, "cudaStream_t");
+    if (!stream){
+        return NULL;
+    }
+
+    return PyLong_FromVoidPtr((void*)(*stream));
+}
+
 static PyObject* stream_sync(PyObject* self, PyObject* args){
     PyObject* capsule;
     if (!PyArg_ParseTuple(args, "O", &capsule)){
