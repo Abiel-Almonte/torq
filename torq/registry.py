@@ -7,22 +7,7 @@ _pipe_registry: Tuple[Tuple[Type, Callable[..., Any]], ...] = (
     (FunctionType, lambda f: f),  # general function, same as lambda type
 )
 
-try:
-    import cv2  # opencv preloaded
-
-    _pipe_registry += ((cv2.VideoCapture, lambda x: x.read()[-1]),)
-except ImportError:
-    pass
-
-try:
-    import torch.nn as nn  # pytorch preloaded
-
-    _pipe_registry += ((nn.Module, lambda m: m.forward),)
-except ImportError:
-    pass
-
-
-def register(cls: Type, adapter: Callable[..., Any]) -> None:
+def register_pipe(cls: Type, adapter: Callable[..., Any]) -> None:
     if not callable(adapter):
         raise TypeError(f"Unable to use adapter of type {type(adapter)}")
 
@@ -30,12 +15,30 @@ def register(cls: Type, adapter: Callable[..., Any]) -> None:
     _pipe_registry += ((cls, adapter),)
 
 
-def register_decorator(adapter: Callable[..., Any]) -> Callable:
+def register_pipe_decorator(adapter: Callable[..., Any]) -> Callable:
     def decorator(cls):
-        register(cls, adapter)
+        register_pipe(cls, adapter)
         return cls
 
     return decorator
+
+try:
+    import cv2  # opencv preloaded
+
+    register_pipe(cv2.VideoCapture, lambda x: x.read()[-1])
+except ImportError:
+    pass
+
+try:
+    import torch.nn as nn  # pytorch preloaded
+
+    register_pipe(nn.Module, lambda m: m.forward)
+except ImportError:
+    pass
+
+
+def get_registered_types() -> Tuple[Type, ...]:
+    return tuple(cls for cls, _ in _pipe_registry)
 
 
 def get_adapter(obj: object) -> Callable[..., Any]:
@@ -48,6 +51,3 @@ def get_adapter(obj: object) -> Callable[..., Any]:
     )
     return lambda x: x
 
-
-def get_registered_types() -> Tuple[Type, ...]:
-    return tuple(cls for cls, _ in _pipe_registry)
