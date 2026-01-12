@@ -1,7 +1,7 @@
 from typing import Tuple
 
-from .runnable import Runnable
-from .pipes import Pipe
+from ..runnable import Runnable
+from ..pipes import Pipe
 
 
 class DAGNode(Runnable):
