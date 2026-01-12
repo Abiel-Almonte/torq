@@ -1,4 +1,4 @@
-from .registry import register, register_decorator
+from .registry import register_pipe, register_pipe_decorator
 from .pipeline import Sequential, Concurrent
 from .pipes import Pipe
 from .compiler import register_backend, compile
