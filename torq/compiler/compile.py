@@ -1,43 +1,18 @@
-from typing import Any, Union, Protocol, Optional, runtime_checkable
+from typing import Any, Union
 
-from .runnable import Runnable
-from .pipeline import System
+from ..runnable import Runnable
+from ..pipeline import System
+
+from . import registry
 from .dag import DAG
 
 
-@runtime_checkable
-class CompilerBackend(Protocol):
-    def __call__(self, graph: DAG) -> DAG: ...
-
-
-_registered_backend: Optional[CompilerBackend] = None
-
-
-def register_backend(fn: CompilerBackend):
-    import inspect
-
-    sig = inspect.signature(fn)
-    n_params = len(list(sig.parameters.values()))
-
-    if n_params != 1 or not isinstance(fn, CompilerBackend):
-        raise TypeError(f"Object {fn} does not implement CompilerBackend protocol")
-
-    global _registered_backend
-    _registered_backend = fn
-    return fn
-
-
 def compile_graph(graph: DAG) -> DAG:
-    if _registered_backend is None:
+    if registry._registered_backend is None:
         raise RuntimeError("No compiler backend registered")
-    g = _registered_backend(graph)
+    g = registry._registered_backend(graph)
     g.semantic_lint()  # structural lints like cycles/ orphans will surface naturally
     return g
-
-
-@register_backend
-def torq_backend(graph: DAG) -> DAG:
-    return graph
 
 
 class CompiledSystem(Runnable):
