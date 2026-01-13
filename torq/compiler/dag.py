@@ -35,10 +35,14 @@ class DAG(Runnable):
 
     def __call__(self, *args: Any) -> Any:
         cache = {}
+        args_iter = iter(args)
 
         for node in self:
-            ins = tuple(cache[arg] for arg in node.args)
-            cache[node] = node(*ins)
+            if not node.args:
+                cache[node] = node(*next(args_iter))
+            else:
+                ins = tuple(cache[arg] for arg in node.args)
+                cache[node] = node(*ins)
 
         outs = tuple(cache[leaf] for leaf in self.leaves)
 
