@@ -78,11 +78,10 @@ Materialization is just an artifact of an earlier, equally important design deci
 
 If the boundary between materialization and lowering is ever dissolved, a pipe becomes just another abstraction of a node. Exposing `torq`’s job of “interconnecting” back to the user.
 
----
 
 **The pipe abstraction is not IR. `torq` delegates the responsibility of defining the system to the user and understanding it to the compiler.**
 
-## Why this matters
+### Why this matters
 
 Lets take a look **solely** at how similar purposed software handle their **user interface**, namely NVIDIA's `DeepStream`.
 
