@@ -1,4 +1,4 @@
-from typing import Dict, Callable, Any, Protocol, runtime_checkable
+from typing import Dict, Any, Protocol, runtime_checkable
 
 from .types import ptr_t
 
