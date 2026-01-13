@@ -1,33 +1,33 @@
 from typing import Optional, Union, Tuple
 from collections import defaultdict
 
-from .. import config
 from ..core import System, Pipeline, Sequential, Concurrent, Pipe
 from ..utils import logging
 
 from .nodes import DAGNode
 
 
-class StreamAssigner:
-    def __init__(self, n_streams: int) -> None:
-        self._n = n_streams
-        self._idx = -1
+class _AtomicCounter:
+    def __init__(self) -> None:
+        self._count = -1
 
-    def get_next_streamid(self) -> int:
-        self._idx = (self._idx + 1) % self._n
-        return self._idx
+    def get_next(self):
+        self._count += 1
+        return self._count
 
 
 def lower(system: System):
     nodes = tuple()
-    assigner = StreamAssigner(config.max_streams)
+    branch_cnt = (
+        _AtomicCounter()
+    )  # resources are to be assigned to branches, not nodes.
     global_cnt = defaultdict(int)
 
     def walk(
         pipe: Union[Pipeline, Pipe],
         prev: Union[Tuple[DAGNode, ...], DAGNode, None] = None,
         name: str = "",
-        stream_id: int = 0,
+        branch: int = 0,
         local_cnt: Optional[defaultdict] = None,
     ) -> Union[DAGNode, Tuple[DAGNode, ...]]:
 
@@ -46,7 +46,7 @@ def lower(system: System):
             if isinstance(pipeline, Sequential):
                 curr = prev
                 for pipe in pipeline._pipes:
-                    curr = walk(pipe, curr, name, stream_id, local_cnt)
+                    curr = walk(pipe, curr, name, branch, local_cnt)
 
                 if curr is None:
                     raise RuntimeError(f"Invalid pipeline. Sequential is empty")
@@ -61,10 +61,10 @@ def lower(system: System):
                         pipe,
                         prev,
                         name,
-                        stream_id=(
-                            stream_id
+                        branch=(
+                            branch
                             if isinstance(pipe, Concurrent)
-                            else assigner.get_next_streamid()
+                            else branch_cnt.get_next()
                         ),
                         local_cnt=local_cnt,
                     )
@@ -94,7 +94,7 @@ def lower(system: System):
 
                 args += prev
 
-            node = DAGNode(name, stream_id, pipe, args)
+            node = DAGNode(name, branch, pipe, args)
 
             nonlocal nodes
             nodes += (node,)
