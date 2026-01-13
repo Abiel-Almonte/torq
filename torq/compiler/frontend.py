@@ -17,10 +17,10 @@ class _BranchCounter:
         self._local = branch
         self._global = branch
 
-    def get_branch(self):
+    def get_branch(self) -> int:
         return self._local
 
-    def get_next(self):
+    def get_next(self) -> "_BranchCounter":
         branch = self._global
         self._global += 1
         return _BranchCounter(branch)
@@ -65,23 +65,23 @@ class _TraversalContext:
     branch: _BranchCounter
     nodes: List[DAGNode]
 
-    def new_name(self, pipeline: Pipeline):
+    def new_name(self, pipeline: Pipeline) -> "_TraversalContext":
         return replace(self, name=self.name.enter_pipeline(pipeline))
 
-    def get_name(self, pipe: Pipe):
+    def get_name(self, pipe: Pipe) -> str:
         return self.name.get_name(pipe)
 
-    def new_branch(self):
+    def new_branch(self) -> "_TraversalContext":
         return replace(self, branch=self.branch.get_next())
 
-    def get_branch(self):
+    def get_branch(self) -> str:
         return self.branch.get_branch()
 
-    def push_node(self, node: DAGNode):
+    def push_node(self, node: DAGNode) -> None:
         self.nodes.append(node)
 
 
-def build_graph(system: System):
+def build_graph(system: System) -> Tuple[Nodes, Nodes]:
     ctx = _TraversalContext(
         name=_NameBuilder(tuple(), defaultdict(int)),
         branch=_BranchCounter(0),
