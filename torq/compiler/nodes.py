@@ -1,9 +1,10 @@
 from typing import Tuple
 
 from ..core import Runnable, Pipe
+from .types import Node
 
 
-class DAGNode(Runnable):
+class DAGNode(Node, Runnable):
     def __init__(
         self, node_id: str, branch: int, pipe: Pipe, args: Tuple["DAGNode", ...]
     ):
@@ -19,7 +20,7 @@ class DAGNode(Runnable):
         return hash(self.id)
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, DAGNode) and self.id == other.id
+        return isinstance(other, Node) and self.id == other.id
 
     def __repr__(self) -> str:
         def _repr(node: DAGNode, level=0):
