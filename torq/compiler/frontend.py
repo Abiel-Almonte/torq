@@ -45,7 +45,7 @@ def lower(system: System):
             local_cnt.clear()
             if isinstance(pipeline, Sequential):
                 curr = prev
-                for pipe in pipeline._pipes:
+                for pipe in pipeline:
                     curr = walk(pipe, curr, name, branch, local_cnt)
 
                 if curr is None:
@@ -56,7 +56,7 @@ def lower(system: System):
             elif isinstance(pipeline, Concurrent):
                 outs = tuple()
 
-                for pipe in pipeline._pipes:
+                for pipe in pipeline:
                     out = walk(
                         pipe,
                         prev,
