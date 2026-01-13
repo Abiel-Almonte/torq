@@ -87,7 +87,7 @@ class Sequential(Pipeline):
     def _call_impl(self, *args: Any) -> Any:
 
         x = args
-        for fn in self.container:
+        for fn in self:
             x = fn(*x)
 
             if not isinstance(x, tuple):
@@ -101,7 +101,7 @@ class Concurrent(Pipeline):
     def _call_impl(self, *args: Any) -> Any:
 
         outs = tuple()
-        for fn in self.container:
+        for fn in self:
             out = fn(*args)
 
             if not isinstance(out, tuple):
