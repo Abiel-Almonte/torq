@@ -5,10 +5,7 @@ from dataclasses import dataclass, replace
 from ..core import System, Pipeline, Sequential, Concurrent, Pipe
 from ..utils import logging
 from .nodes import DAGNode
-
-Nodes = Tuple[DAGNode, ...]
-NodeOrNodes = Union[DAGNode, Nodes]
-
+from .types import Node, Nodes, NodeOrNodes
 
 class _BranchCounter:
     __slots__ = ("_local", "_global")
@@ -63,7 +60,7 @@ class _NameBuilder:
 class _TraversalContext:
     name: _NameBuilder
     branch: _BranchCounter
-    nodes: List[DAGNode]
+    nodes: List[Node]
 
     def new_name(self, pipeline: Pipeline) -> "_TraversalContext":
         return replace(self, name=self.name.enter_pipeline(pipeline))
@@ -77,7 +74,7 @@ class _TraversalContext:
     def get_branch(self) -> str:
         return self.branch.get_branch()
 
-    def push_node(self, node: DAGNode) -> None:
+    def push_node(self, node: Node) -> None:
         self.nodes.append(node)
 
 
@@ -153,13 +150,13 @@ def _parse_system(
 
 def _lower_pipe(
     pipe: Pipe, prev: NodeOrNodes, ctx: _TraversalContext
-) -> DAGNode:  # TODO lower to GPU Nodes
+) -> Node:  # TODO lower to GPU Nodes
 
     node = DAGNode(
         node_id=ctx.get_name(pipe),
         branch=ctx.get_branch(),
         pipe=pipe,
-        args=_as_tuple(prev) if prev else (),
+        args=_as_tuple(prev) if prev else ()
     )
 
     ctx.push_node(node)
