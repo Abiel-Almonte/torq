@@ -7,7 +7,7 @@ from .runnable import Runnable
 
 
 class Pipe(Runnable):
-    _inner_name = "inner"
+    _name = "inner"
 
     def __init__(
         self,
@@ -56,19 +56,19 @@ class Pipe(Runnable):
         return self.caller(*args)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self._inner_name}={self._inner})"
+        return f"{self.__class__.__name__}({self._name}={self._inner})"
 
 
 class Input(Pipe):
-    _inner_name = "source"
+    _name = "source"
 
 
 class Model(Pipe):
-    _inner_name = "model"
+    _name = "model"
 
 
 class Output(Pipe):
-    _inner_name = "sink"
+    _name = "sink"
 
 
 class Functional(Pipe):
