@@ -3,7 +3,7 @@ from typing import Tuple
 from ..core import Runnable, Input, Output, System
 
 from .nodes import DAGNode
-from .frontend import lower
+from .frontend import build_graph
 
 
 class DAG(Runnable):
@@ -13,7 +13,7 @@ class DAG(Runnable):
 
     @staticmethod
     def from_system(system: System) -> "DAG":
-        dag = DAG(*lower(system))
+        dag = DAG(*build_graph(system))
         dag.semantic_lint()  # API make cycles and orphans impossible to occur.
         return dag
 
