@@ -7,7 +7,7 @@ from .frontend import build_graph
 
 
 class DAG(Runnable):
-    def __init__(self, nodes: Tuple[DAGNode, ...], leaves: Tuple[DAGNode, ...]) -> None:
+    def __init__(self, nodes: Nodes, leaves: Nodes) -> None:
         self.nodes = nodes
         self.leaves = leaves
 
@@ -21,14 +21,15 @@ class DAG(Runnable):
         for node in self:
             if isinstance(node.pipe, Input):
                 if len(node.args) > 0:
+                    
                     raise RuntimeError(
-                        f"Input node {node.node_id} cannot have incoming edges"
+                        f"Input node {node.id} cannot have incoming edges"
                     )
 
             for arg in node.args:
                 if isinstance(arg.pipe, Output):
                     raise RuntimeError(
-                        f"Output node {arg.node_id} cannot have outgoing edges"
+                        f"Output node {arg.id} cannot have outgoing edges"
                     )
 
     def __call__(self, *args):
