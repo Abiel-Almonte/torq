@@ -1,131 +1,151 @@
 from typing import Union, Tuple, List
 from collections import defaultdict
+from dataclasses import dataclass, replace
 
 from ..core import System, Pipeline, Sequential, Concurrent, Pipe
 from ..utils import logging
-
 from .nodes import DAGNode
 
+Nodes = Tuple[DAGNode, ...]
+NodeOrNodes = Union[DAGNode, Nodes]
 
-class _AtomicCounter:
-    def __init__(self) -> None:
-        self._count = -1
+
+class _BranchCounter:
+    __slots__ = ('_local', '_global')
+
+    def __init__(self, branch: int) -> None:
+        self._local = branch
+        self._global = branch
+
+    def get_branch(self):
+        return self._local
 
     def get_next(self):
-        self._count += 1
-        return self._count
+        branch = self._global
+        self._global += 1
+        return _BranchCounter(branch)
 
 
 class _NameBuilder:
+    __slots__ = ('stack', '_global', '_local')
+
     def __init__(
         self,
         stack: Tuple[str, ...],
         global_cnt: defaultdict,
-        local_cnt: defaultdict,
     ) -> None:
+
         self.stack = stack
         self._global = global_cnt
-        self._local = local_cnt
+        self._local = defaultdict(int)  # every pipeline gets their own local counter
 
-    @property
-    def value(self):
-        return ".".join(self.stack)
-
-    def _update(self, obj: object, scope: str) -> "_NameBuilder":
+    def enter_pipeline(self, obj: object) -> "_NameBuilder":
         cls_name = obj.__class__.__name__.lower()
-        cnt = getattr(self, f"_{scope}")
 
-        idx = cnt[cls_name]
-        cnt[cls_name] += 1
-
-        new_stack = self.stack + (f"{cls_name}{idx}",)
+        idx = self._global[cls_name]
+        self._global[cls_name] += 1
 
         return _NameBuilder(
-            stack=new_stack, global_cnt=self._global, local_cnt=self._local.copy()
+            stack=self.stack + (f"{cls_name}{idx}",),
+            global_cnt=self._global,  # maintain the global reference for unique node ids
         )
 
-    def update_global(self, obj: object) -> "_NameBuilder":
-        ret = self._update(obj, "global")
-        ret._local.clear()
-        return ret
+    def get_name(self, obj: object) -> str:
+        cls_name = obj.__class__.__name__.lower()
 
-    def update_local(self, obj: object) -> "_NameBuilder":
-        return self._update(obj, "local")
+        idx = self._local[cls_name]
+        self._local[cls_name] += 1
+
+        return ".".join(self.stack + (f"{cls_name}{idx}",))
 
 
-def lower(system: System):
-    nodes = []
-    branch_cnt = (
-        _AtomicCounter()
-    )  # resources are to be assigned to branches, not nodes.
+@dataclass
+class _TraversalContext:
+    name: _NameBuilder
+    branch: _BranchCounter
+    nodes: List[DAGNode]
 
-    def _walk(
-        pipe: Union[Pipeline, Pipe],
-        prev: Union[Tuple[DAGNode, ...], DAGNode, None] = None,
-        name: _NameBuilder = None,
-        branch: int = 0,
-    ) -> Union[DAGNode, Tuple[DAGNode, ...]]:
 
-        if isinstance(pipe, Pipeline):
-            pipeline = pipe
-            name = name.update_global(pipeline)
-
-            if isinstance(pipeline, Sequential):
-                curr = prev
-                for pipe in pipeline:
-                    curr = _walk(pipe, curr, name, branch)
-
-                return curr
-
-            elif isinstance(pipeline, Concurrent):
-                outs = tuple()
-
-                for pipe in pipeline:
-                    local_branch = (
-                        branch
-                        if isinstance(pipe, Concurrent)
-                        else branch_cnt.get_next()
-                    )
-                    out = _walk(pipe, prev, name, local_branch)
-
-                    outs += out if isinstance(out, tuple) else (out,)
-
-                return outs
-
-            else:
-                raise TypeError(f"Unknown pipeline type in system: {type(pipeline)}")
-
-        elif isinstance(pipe, Pipe):
-            return _lower_pipe(pipe, prev, branch, name, nodes)
-
-        else:
-            raise TypeError(f"Unknown type in system: {type(pipe)}")
-
-    leaves = _walk(
-        system, name=_NameBuilder(tuple(), defaultdict(int), defaultdict(int))
+def build_graph(system: System):
+    ctx = _TraversalContext(
+        name=_NameBuilder(tuple(), defaultdict(int)),
+        branch=_BranchCounter(0),
+        nodes=[],
     )
 
-    if not isinstance(leaves, tuple):
-        leaves = (leaves,)  # pack single leaf
+    leaves = _parse_system(system, prev=None, ctx=ctx)
+    leaves = _as_tuple(leaves)
 
-    logging.info(f"Graph built with {len(nodes)} nodes and {len(leaves)} trees")
+    logging.info(f"Graph built with {len(ctx.nodes)} nodes and {len(leaves)} trees")
+    return tuple(ctx.nodes), leaves
 
-    return nodes, leaves
+
+def _as_tuple(x) -> tuple:
+
+    if not isinstance(x, tuple):
+        x = (x,)
+
+    return x
+
+
+def _parse_system(
+    pipe: Union[Pipeline, Pipe],
+    prev: NodeOrNodes,
+    ctx: _TraversalContext,
+) -> NodeOrNodes:
+
+    if isinstance(pipe, Pipeline):
+        pipeline = pipe
+        ctx = replace(ctx, name=ctx.name.enter_pipeline(pipeline))
+
+        if isinstance(pipeline, Sequential):
+            curr = prev
+            for pipe in pipeline:
+                curr = _parse_system(pipe, prev=curr, ctx=ctx)
+
+            if curr is prev:
+                raise RuntimeError("Sequential pipeline is empty")
+
+            return curr
+
+        elif isinstance(pipeline, Concurrent):
+            outs = tuple()
+
+            for pipe in pipeline: # shadow pipe
+                branch_ctx = (
+                    ctx
+                    if isinstance(pipe, Concurrent)
+                    else replace(ctx, branch=ctx.branch.get_next())
+                )
+
+                out = _parse_system(pipe, prev=prev, ctx=branch_ctx)
+                outs += _as_tuple(out)
+
+            if not outs:
+                raise RuntimeError("Concurrent pipeline is empty")
+
+            return outs
+
+        else:
+            raise TypeError(f"Unknown pipeline type in system: {type(pipeline)}")
+
+    elif isinstance(pipe, Pipe):
+        return _lower_pipe(pipe, prev, ctx)
+
+    else:
+        raise TypeError(f"Unknown type in system: {type(pipe)}")
 
 
 def _lower_pipe(
-    pipe: Pipe, prev, branch: int, name: _NameBuilder, nodes: List[DAGNode]
-):
-    name = name.update_local(pipe)
-    args = tuple()
+    pipe: Pipe, prev: NodeOrNodes, ctx: _TraversalContext
+) -> DAGNode:  # TODO lower to GPU Nodes
 
-    if prev:
-        if not isinstance(prev, tuple):
-            prev = (prev,)
+    node = DAGNode(
+        node_id=ctx.name.get_name(pipe),
+        branch=ctx.branch.get_branch(),
+        pipe=pipe,
+        args=_as_tuple(prev) if prev else (),
+    )
 
-        args += prev
-
-    node = DAGNode(name.value, branch, pipe, args)
-    nodes.append(node)
-
+    ctx.nodes.append(node)
     return node
