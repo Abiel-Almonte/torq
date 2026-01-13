@@ -110,7 +110,7 @@ pgie.link(nvvidconv)
 nvvidconv.link(nvosd)
 nvosd.link(sink)
 ...
-
+```
 `DeepStream`'s approach contrasts with our design philosophy. And as we expect, it exposes a user interface where developers must assemble and connect individual nodes.
 
 Whereas `torq` delegates interconnection to the compiler, where it belongs:
