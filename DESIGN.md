@@ -1,4 +1,9 @@
 # Designing torq
+
+## Staying small and nimble
+
+TODO
+
 ## What are branches?
 
 They are a means of assigning resources without being wasteful. 
@@ -89,23 +94,22 @@ h264parser = Gst.ElementFactory.make("h264parse", "h264-parser")
 decoder = Gst.ElementFactory.make("nvv4l2decoder", "nvv4l2-decoder")
 ...
 ```
-manual graph wiring,
-```python
-source.link(h264parser)
-h264parser.link(decoder)
-sinkpad = streammux.request_pad_simple("sink_0")
-srcpad = decoder.get_static_pad("src")
-srcpad.link(sinkpad)
-streammux.link(pgie)
-pgie.link(nvvidconv)
-...
 ```
-and manual pipeline management.
+manual pipeline management,
 ```python
 pipeline.add(source)
 pipeline.add(h264parser)
+pipeline.add(decoder)
 ...
 ```
+and manual graph wiring.
+```python
+srcpad.link(sinkpad)
+streammux.link(pgie)
+pgie.link(nvvidconv)
+nvvidconv.link(nvosd)
+nvosd.link(sink)
+...
 
 `DeepStream`'s approach contrasts with our design philosophy. And as we expect, it exposes a user interface where developers must assemble and connect individual nodes.
 
