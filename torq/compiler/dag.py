@@ -1,8 +1,9 @@
-from typing import Tuple
+from typing import Any
+
 
 from ..core import Runnable, Input, Output, System
 
-from .nodes import DAGNode
+from .types import Node, Nodes
 from .frontend import build_graph
 
 
@@ -17,7 +18,7 @@ class DAG(Runnable):
         dag.semantic_lint()  # API make cycles and orphans impossible to occur.
         return dag
 
-    def semantic_lint(self):
+    def semantic_lint(self) -> None:
         for node in self:
             if isinstance(node.pipe, Input):
                 if len(node.args) > 0:
@@ -32,7 +33,7 @@ class DAG(Runnable):
                         f"Output node {arg.id} cannot have outgoing edges"
                     )
 
-    def __call__(self, *args):
+    def __call__(self, *args: Any) -> Any:
         cache = {}
 
         for node in self:
@@ -46,7 +47,7 @@ class DAG(Runnable):
     def __iter__(self):
         visited = set()
 
-        def visit(node: DAGNode):
+        def visit(node: Node):
             if node in visited:
                 return
 
