@@ -7,5 +7,5 @@ try:
     from . import cuda
 
     HAS_CUDA = True
-except ImportError:
-    pass
+except ImportError as e:
+    print(e)

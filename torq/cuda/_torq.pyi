@@ -41,3 +41,7 @@ def get_executor_ptr(executor: cudaGraphExec_t) -> ptr_t:
 def launch_graph(executor: cudaGraphExec_t, stream: cudaStream_t) -> None:
     """Execute CUDA Graph"""
     ...
+
+def hook_synchronization(enable: bool) -> None:
+    """Toogle cudaStreamSynchronize hook"""
+    ...
