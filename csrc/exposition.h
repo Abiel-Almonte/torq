@@ -1,5 +1,5 @@
-#ifndef _TORQ_WRAPPERS_H
-#define _TORQ_WRAPPERS_H
+#ifndef _TORQ_EXPOSITION_H
+#define _TORQ_EXPOSITION_H
 #include "utils.h"
 
 // synchronization

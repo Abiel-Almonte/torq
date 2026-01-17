@@ -1,9 +1,16 @@
 #define PY_SSIZE_T_CLEAN
-#include "hooks.h"
-#include "wrappers.h"
+#include "interception.h"
+#include "exposition.h"
+
 
 static PyMethodDef _torq_methods [] = {
-    {"hook_synchronization", &synchronization_hook, METH_VARARGS, "Toogle cudaStreamSynchronize hook"},
+    {"clear_kernel_launch_detected", &clear_kernel_detected, METH_VARARGS, "Clear krnl_launch_deteced flag"},
+    {"get_kernel_launch_detected", &get_kernel_detected, METH_VARARGS, "Check if cuLaunchKernel detected"},
+    {"detect_kernel_launch", &detect_kernel, METH_VARARGS, "Toggle cuLaunchKernel detection"},
+
+    {"clear_synchronization_detected", &clear_sync_detected, METH_VARARGS, "Clear sync_detected flag"},
+    {"get_synchronization_detected", &get_sync_detected, METH_VARARGS, "Check if cudaStreamSynchronize detected"},
+    {"detect_synchronization", &detect_sync, METH_VARARGS, "Toggle cudaStreamSynchronize detection"},
 
     {"launch_graph", &graph_launch, METH_VARARGS, "Launch CUDA Graph"},
 
