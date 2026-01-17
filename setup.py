@@ -3,7 +3,7 @@ from setuptools import setup, Extension
 
 ctorq_extension = Extension(
     name="torq.cuda._torq",
-    sources=["csrc/torq.c"],
+    sources=["csrc/torq.c", "csrc/impl/interception.c", "csrc/impl/exposition.c"],
     include_dirs=[
         "./csrc",
         "/usr/include/cuda/",
