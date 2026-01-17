@@ -22,7 +22,7 @@ class DAG(Runnable):
         for node in self:
             if isinstance(node.pipe, Input):
                 if len(node.args) > 0:
-                    
+
                     raise RuntimeError(
                         f"Input node {node.id} cannot have incoming edges"
                     )
