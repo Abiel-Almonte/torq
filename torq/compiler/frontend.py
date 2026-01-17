@@ -3,9 +3,10 @@ from collections import defaultdict
 from dataclasses import dataclass, replace
 
 from ..core import System, Pipeline, Sequential, Concurrent, Pipe
+from ..cuda import OperationDetector
 from ..utils import logging
 
-from .nodes import DAGNode
+from .nodes import HostNode, SyncNode, DeviceNode
 from .types import Node, Nodes, NodeOrNodes
 
 
@@ -158,8 +159,18 @@ def _lower_pipe(
     pipe: Pipe, prev: NodeOrNodes, prev_outs: Any, ctx: _TraversalContext
 ) -> Tuple[Node, Any]:  # TODO lower to GPU Nodes
 
-    outs = pipe(*prev_outs)
-    node = DAGNode(
+    with OperationDetector() as op:
+        outs = pipe(*prev_outs)
+
+    if op.uses_device:
+        if op.has_sync:
+            node_cls = SyncNode
+        else:
+            node_cls = DeviceNode
+    else:
+        node_cls = HostNode
+
+    node = node_cls(
         node_id=ctx.get_name(pipe),
         branch=ctx.get_branch(),
         pipe=pipe,

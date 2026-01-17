@@ -3,9 +3,7 @@ from .types import Node, Nodes
 
 
 class DAGNode(Node, Runnable):
-    def __init__(
-        self, node_id: str, branch: int, pipe: Pipe, args: Nodes
-    ):
+    def __init__(self, node_id: str, branch: int, pipe: Pipe, args: Nodes):
         self.id = node_id
         self.branch = branch
         self.pipe = pipe
@@ -25,7 +23,7 @@ class DAGNode(Node, Runnable):
             space = "\t"
             indent = space * level
 
-            s = f"{indent}{self.__class__.__name__}(\n"
+            s = f"{indent}{node.__class__.__name__}(\n"
             s += f"{indent}{space}id={node.id},\n"
             s += f"{indent}{space}branch={node.branch},\n"
             s += f"{indent}{space}pipe={node.pipe.__class__.__name__},\n"
@@ -42,3 +40,12 @@ class DAGNode(Node, Runnable):
             return s
 
         return _repr(self)
+
+class HostNode(DAGNode):
+    pass
+
+class DeviceNode(DAGNode):
+    pass # TODO lazy capture graph 
+
+class SyncNode(DAGNode):
+    pass

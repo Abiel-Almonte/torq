@@ -42,6 +42,26 @@ def launch_graph(executor: cudaGraphExec_t, stream: cudaStream_t) -> None:
     """Execute CUDA Graph"""
     ...
 
-def hook_synchronization(enable: bool) -> None:
-    """Toogle cudaStreamSynchronize hook"""
+def detect_synchronization(enable: bool) -> None:
+    """Toggle cudaStreamSynchronize or cudaDeviceSynchronize detection"""
+    ...
+
+def get_synchronization_detected() -> bool:
+    """Check if cudaStreamSynchronize or cudaDeviceSynchronize detected"""
+    ...
+
+def clear_synchronization_detected() -> None:
+    """Clear sync_detected flag"""
+    ...
+
+def detect_kernel_launch(enable: bool) -> None:
+    """Toggle cuLaunchKernel detection"""
+    ...
+
+def get_kernel_launch_detected() -> bool:
+    """Check if cuLaunchKernel detected"""
+    ...
+
+def clear_kernel_launch_detected() -> None:
+    """Clear krnl_launch_deteced flag"""
     ...
