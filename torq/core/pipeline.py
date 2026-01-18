@@ -2,6 +2,8 @@ from contextlib import contextmanager
 from typing import Any, TypeAlias, Callable, List
 from abc import ABC, abstractmethod
 
+from ..utils import _as_tuple
+
 from .runnable import Runnable
 from .pipes import Pipe
 
@@ -101,9 +103,7 @@ class Sequential(Pipeline):
         x = args
         for fn in self:
             x = self._fn_wrappers[-1](fn, *x)
-
-            if not isinstance(x, tuple):
-                x = (x,)
+            x = _as_tuple(x)
 
         return x
 
@@ -115,11 +115,7 @@ class Concurrent(Pipeline):
         outs = tuple()
         for fn in self:
             out = self._fn_wrappers[-1](fn, *args)
-
-            if not isinstance(out, tuple):
-                out = (out,)
-
-            outs += out
+            outs += _as_tuple(out)
 
         return outs
 

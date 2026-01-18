@@ -12,3 +12,11 @@ class logging: # torq logging class
     error: Callable = lambda x: (
         print(f"[torq] ERROR: {x}") if config.verbose else None
     )
+
+
+def _as_tuple(x) -> tuple:
+
+    if not isinstance(x, tuple):
+        x = (x,)
+
+    return x

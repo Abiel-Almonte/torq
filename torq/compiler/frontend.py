@@ -4,7 +4,7 @@ from dataclasses import dataclass, replace
 
 from ..core import System, Pipeline, Sequential, Concurrent, Pipe
 from ..cuda import OperationDetector
-from ..utils import logging
+from ..utils import logging, _as_tuple
 
 from .nodes import HostNode, SyncNode, DeviceNode
 from .types import Node, Nodes, NodeOrNodes
@@ -93,14 +93,6 @@ def build_graph(system: System, *args) -> Tuple[Nodes, Nodes, Any]:
 
     logging.info(f"Graph built with {len(ctx.nodes)} nodes and {len(leaves)} trees")
     return tuple(ctx.nodes), leaves
-
-
-def _as_tuple(x) -> tuple:
-
-    if not isinstance(x, tuple):
-        x = (x,)
-
-    return x
 
 
 def _lower_system(
