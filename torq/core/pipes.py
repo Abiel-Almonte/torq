@@ -2,6 +2,7 @@ from types import FunctionType
 from typing import Tuple, Callable, Any
 
 import inspect
+from ..utils import _as_tuple
 from .registry import get_registered_types, get_adapter
 from .runnable import Runnable
 
@@ -34,6 +35,7 @@ class Pipe(Runnable):
 
         pipe = Pipe(opaque)
         outs = pipe(*ins)
+        outs = _as_tuple(outs)
 
         has_input = ins is not None and len(ins) != 0
         has_output = outs is not None and len(outs) != 0
