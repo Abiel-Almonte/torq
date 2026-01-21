@@ -38,9 +38,11 @@ class CUDAGraph(Handler):
 
     def begin_capture(self, stream: CUDAStream) -> None:
         _torq.begin_capture(stream._handler)
+        _torq.inject_stream(stream._handler)
 
     def end_capture(self, stream: CUDAStream) -> None:
         self._handler: cudaGraph_t = _torq.end_capture(stream._handler)
+        _torq.clear_injection()
 
     def launch(self, exec: "CUDAGraphExec", stream: CUDAStream) -> None:
         _torq.launch_graph(exec._handler, stream._handler)

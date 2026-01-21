@@ -51,7 +51,7 @@ def get_synchronization_detected() -> bool:
     ...
 
 def clear_synchronization_detected() -> None:
-    """Clear sync_detected flag"""
+    """Clear synchronization detected flag"""
     ...
 
 def detect_kernel_launch(enable: bool) -> None:
@@ -63,5 +63,13 @@ def get_kernel_launch_detected() -> bool:
     ...
 
 def clear_kernel_launch_detected() -> None:
-    """Clear krnl_launch_deteced flag"""
+    """Clear kernel launch detected flag"""
+    ...
+
+def inject_stream(stream: cudaStream_t) -> None:
+    """Inject CUDA Stream into kernel launch"""
+    ...
+
+def clear_injection() -> None:
+    """Remove injected CUDA Stream from kernel launch"""
     ...

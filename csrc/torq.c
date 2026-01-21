@@ -1,9 +1,12 @@
 #define PY_SSIZE_T_CLEAN
-#include "interception.h"
+#include "interception/interception.h"
 #include "exposition.h"
 
 
 static PyMethodDef _torq_methods [] = {
+    {"clear_injection", &clear_injection, METH_NOARGS, "Remove injected CUDA Stream from kernel launch"},
+    {"inject_stream", &inject_stream, METH_VARARGS, "Inject CUDA Stream into kernel launch"},
+
     {"clear_kernel_launch_detected", &clear_kernel_detected, METH_NOARGS, "Clear kernel_deteced flag"},
     {"get_kernel_launch_detected", &get_kernel_detected, METH_NOARGS, "Check if cuLaunchKernel detected"},
     {"detect_kernel_launch", &detect_kernel, METH_VARARGS, "Toggle cuLaunchKernel detection"},
