@@ -1,9 +1,10 @@
 from setuptools import setup, Extension
+import glob
 
 
 ctorq_extension = Extension(
     name="torq.cuda._torq",
-    sources=["csrc/torq.c", "csrc/impl/interception.c", "csrc/impl/exposition.c"],
+    sources=glob.glob("csrc/**/*.c", recursive=True),
     include_dirs=[
         "./csrc",
         "/usr/include/cuda/",
