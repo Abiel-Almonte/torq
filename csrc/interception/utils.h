@@ -23,7 +23,9 @@ static inline void* _get_real_dlsym(void){
     return real_dlsym;
 }
 
-#define TRACE() fprintf(stderr, "[torq] %s\n", __func__)
+#define TRACE() { \
+    if (torq_debug) fprintf(stderr, "[torq] %s\n", __func__); \
+}
 
 // get the real symbol
 #define _LOAD_SYMBOL(handler, lib, real_fn_symbol, real_fn) { \

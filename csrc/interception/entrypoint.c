@@ -6,7 +6,7 @@
 void* dlsym(void* handle, const char* symbol) {
     void* (*real_dlsym)(void*, const char*) = _get_real_dlsym();
 
-    fprintf(stderr, "[torq] dlsym lookup: %s\n", symbol);
+    if (torq_debug) fprintf(stderr, "[torq] dlsym lookup: %s\n", symbol);
 
     void* fn = torq_lookup_fn(symbol);
     return fn ? fn : real_dlsym(handle, symbol);
@@ -24,7 +24,7 @@ CUresult cuGetProcAddress_v2(
     
     _LOAD_CUDA_SYMBOL(cuGetProcAddress_v2, real_fn);
 
-    fprintf(stderr, "[torq] cuGetProcAddress_v2 lookup: %s\n", symbol);
+    if (torq_debug) fprintf(stderr, "[torq] cuGetProcAddress_v2 lookup: %s\n", symbol);
 
 
     CUresult result = real_fn(symbol, pfn, cudaVersion, flags, symbolStatus);
@@ -32,7 +32,7 @@ CUresult cuGetProcAddress_v2(
     if (result == CUDA_SUCCESS && pfn && *pfn) {
         void* fn = torq_lookup_fn(symbol);
         if (fn) {
-            fprintf(stderr, "[torq] cuGetProcAddress_v2 INTERCEPTED: %s (our=%p real=%p)\n", symbol, fn, *pfn);
+            if (torq_debug) fprintf(stderr, "[torq] cuGetProcAddress_v2 INTERCEPTED: %s (our=%p real=%p)\n", symbol, fn, *pfn);
             *pfn = fn;
         }
     }

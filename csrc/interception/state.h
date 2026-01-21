@@ -4,6 +4,7 @@
 #include <cuda_runtime.h>
 #include <stdbool.h>
 
+extern bool torq_debug;
 
 // Shared state for interception
 extern void* cudart_handler;

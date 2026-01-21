@@ -1,6 +1,7 @@
 #include "interception.h"
 #include "state.h"
 
+bool torq_debug = false;
 
 void* cudart_handler = NULL;
 void* cuda_handler = NULL;
