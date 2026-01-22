@@ -1,7 +1,7 @@
 from typing import Optional
 
 from .types import *
-from . import _torq as _C
+from . import _C
 
 
 class Handler:

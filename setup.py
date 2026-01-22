@@ -3,7 +3,7 @@ import glob
 
 
 ctorq_extension = Extension(
-    name="torq.cuda._torq",
+    name="torq.cuda._C",
     sources=glob.glob("csrc/**/*.c", recursive=True),
     include_dirs=[
         "./csrc",

@@ -46,6 +46,6 @@ static struct PyModuleDef _torq_module = {
     .m_free = NULL
 };
 
-PyMODINIT_FUNC PyInit__torq(void){
+PyMODINIT_FUNC PyInit__C(void){
     return PyModule_Create(&_torq_module);
 }
