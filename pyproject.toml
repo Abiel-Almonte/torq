@@ -8,7 +8,7 @@ dependencies = []
 
 [project.optional-dependencies]
 vision = ["opencv-python", "torch", "jax[cuda13]"]
-visionrt-linux = ["visionrt @ git+https://github.com/abiel-almonte/visionrt.git"]
+visionrt = ["torch", "visionrt @ https://github.com/abiel-almonte/visionrt/releases/download/v0.2.0/visionrt-0.1.0-cp313-cp313-linux_x86_64.whl"]
 
 [dependency-groups]
 dev = [
