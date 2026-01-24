@@ -1,15 +1,15 @@
+import os
+os.environ.pop('LD_PRELOAD', None)
+
 import torch
 import torch.nn as nn
 from torchvision.models import resnet50, ResNet50_Weights
 
-from visionrt import Camera
+from visionrt import Camera, Preprocessor
 
 cam1 = Camera("/dev/video0")
 cam2 = Camera("/dev/video2")
-
-
-def preprocess(frame: torch.Tensor):
-    return frame.unsqueeze(0)
+preprocess = Preprocessor()
 
 
 model = (
