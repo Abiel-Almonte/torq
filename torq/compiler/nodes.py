@@ -1,4 +1,5 @@
 from ..core import Runnable, Pipe
+from ..cuda import Stream, MemoryTracer
 from .types import Node, Nodes
 
 
@@ -8,9 +9,25 @@ class DAGNode(Node, Runnable):
         self.branch = branch
         self.pipe = pipe
         self.args = args
+        self._tracer = MemoryTracer(node_id)
+        self._stabilized = False
+
+    def _call_apply(self, *args):
+        with self._tracer.apply():
+            return self.pipe(*args)
+
+    def _call_trace(self, *args):
+        with self._tracer.trace():
+            outs = self.pipe(*args)
+        
+        self._call = self._call_apply
+        return outs
+
+    def _call(self, *args):
+        return self._call_trace(*args)
 
     def __call__(self, *args):
-        return self.pipe(*args)
+        return self._call(*args)
 
     def __hash__(self) -> int:
         return hash(self.id)
@@ -47,7 +64,26 @@ class HostNode(DAGNode):
 
 
 class DeviceNode(DAGNode):
-    pass  # TODO lazy capture graph
+    def __init__(self, node_id: str, branch: int, pipe: Pipe, args: Nodes):
+        super().__init__(node_id, branch, pipe, args)
+
+        self._launcher = None
+        self._captured_outs = None
+    
+    def __call__(self, *args):
+        print("Device pointer: ", args[0].data_ptr())
+        if self._launcher is None:
+            stream = Stream(self.branch) # TODO create a resource assigner to get stream from branch
+
+            with stream.capture() as launcher:
+                outs = super().__call__(*args)
+
+            self._launcher = launcher 
+            self._captured_outs = outs
+            return outs
+
+        self._launcher.launch()
+        return self._captured_outs
 
 
 class SyncNode(DAGNode):

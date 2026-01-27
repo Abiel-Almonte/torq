@@ -1,3 +1,4 @@
 from .stream import Stream, GraphLauncher
-from .interceptors import OperationDetector
+from .detector import OperationDetector
+from .tracer import MemoryTracer
 from ._C import sync_device as synchronize
