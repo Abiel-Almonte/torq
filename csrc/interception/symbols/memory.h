@@ -3,6 +3,9 @@
 
 #include "../utils.h"
 
+// cuMemAlloc_v2 (Driver API)
+CUresult cuMemAlloc_v2(CUdeviceptr*, size_t);
+typedef CUresult (*cuMemAlloc_v2_fn)(CUdeviceptr*, size_t);
 
 // cuMemcpyAsync (Driver API)
 CUresult cuMemcpyAsync(CUdeviceptr, CUdeviceptr, size_t, CUstream);
@@ -26,13 +29,9 @@ typedef CUresult (*cuMemcpyDtoHAsync_v2_fn)(void*, CUdeviceptr, size_t, CUstream
 CUresult cuMemcpyDtoDAsync_v2(CUdeviceptr, CUdeviceptr, size_t, CUstream);
 typedef CUresult (*cuMemcpyDtoDAsync_v2_fn)(CUdeviceptr, CUdeviceptr, size_t, CUstream);
 
-// cudaMemsetD8Async (Driver API)
-CUresult cuMemsetD8Async(CUdeviceptr, unsigned char, size_t, CUstream);
-typedef CUresult (*cuMemsetD8Async_fn)(CUdeviceptr, unsigned char, size_t, CUstream);
-
-// cudaMemsetD32Async (Driver API)
-CUresult cuMemsetD32Async(CUdeviceptr, unsigned int, size_t, CUstream);
-typedef CUresult (*cuMemsetD32Async_fn)(CUdeviceptr, unsigned int, size_t, CUstream);
+// cudaMalloc (Runtime API)
+cudaError_t cudaMalloc(void**, size_t);
+typedef cudaError_t (*cudaMalloc_fn)(void**, size_t);
 
 // cudaMemcpyAsync (Runtime API)*
 cudaError_t cudaMemcpyAsync(void*, const void*, size_t, enum cudaMemcpyKind, cudaStream_t);
@@ -57,6 +56,14 @@ typedef cudaError_t (*cudaMemset2DAsync_fn)(void*, size_t, int, size_t, size_t, 
 // cudaMemset3DAsync (Runtime API)
 cudaError_t cudaMemset3DAsync(struct cudaPitchedPtr, int, struct cudaExtent, cudaStream_t);
 typedef cudaError_t (*cudaMemset3DAsync_fn)(struct cudaPitchedPtr, int, struct cudaExtent, cudaStream_t);
+
+// cudaMemsetD8Async (Driver API)
+CUresult cuMemsetD8Async(CUdeviceptr, unsigned char, size_t, CUstream);
+typedef CUresult (*cuMemsetD8Async_fn)(CUdeviceptr, unsigned char, size_t, CUstream);
+
+// cudaMemsetD32Async (Driver API)
+CUresult cuMemsetD32Async(CUdeviceptr, unsigned int, size_t, CUstream);
+typedef CUresult (*cuMemsetD32Async_fn)(CUdeviceptr, unsigned int, size_t, CUstream);
 
 // cudaStreamAttachMemAsync (Runtime API)
 cudaError_t cudaStreamAttachMemAsync(cudaStream_t, void*, size_t, unsigned int);
