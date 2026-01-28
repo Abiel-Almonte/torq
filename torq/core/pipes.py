@@ -30,8 +30,13 @@ class Pipe(Runnable):
     @staticmethod
     def from_opaque(opaque: Any, ins: Any) -> Tuple["Pipe", Any]:
         if not isinstance(opaque, get_registered_types()):
-            if not callable(opaque) or getattr(type(opaque), "__call__", None) is object.__call__:
-                raise TypeError(f"Pipeline contains an unknown opaque type {type(opaque)} (no registered adapter and not explicitly callable)")
+            if (
+                not callable(opaque)
+                or getattr(type(opaque), "__call__", None) is object.__call__
+            ):
+                raise TypeError(
+                    f"Pipeline contains an unknown opaque type {type(opaque)} (no registered adapter and not explicitly callable)"
+                )
 
         pipe = Pipe(opaque)
         outs = pipe(*ins)

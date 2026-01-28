@@ -1,5 +1,6 @@
 from . import _C
 
+
 class TraceMemoryCtx:
     def __init__(self, node_id) -> None:
         self._node_id = node_id

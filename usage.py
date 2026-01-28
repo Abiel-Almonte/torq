@@ -1,5 +1,6 @@
 import os
-os.environ.pop('LD_PRELOAD', None)
+
+os.environ.pop("LD_PRELOAD", None)
 
 import torch
 import torch.nn as nn

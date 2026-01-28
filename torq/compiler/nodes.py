@@ -19,7 +19,7 @@ class DAGNode(Node, Runnable):
     def _call_trace(self, *args):
         with self._tracer.trace():
             outs = self.pipe(*args)
-        
+
         self._call = self._call_apply
         return outs
 
@@ -69,15 +69,17 @@ class DeviceNode(DAGNode):
 
         self._launcher = None
         self._captured_outs = None
-    
+
     def __call__(self, *args):
         if self._launcher is None:
-            stream = Stream(self.branch) # TODO create a resource assigner to get stream from branch
+            stream = Stream(
+                self.branch
+            )  # TODO create a resource assigner to get stream from branch
 
             with stream.capture() as launcher:
                 outs = super().__call__(*args)
 
-            self._launcher = launcher 
+            self._launcher = launcher
             self._captured_outs = outs
             return outs
 

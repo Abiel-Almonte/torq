@@ -29,7 +29,9 @@ class Opaque:
 
 
 class Pipeline(ABC, Runnable):
-    _fn_wrappers: List[Callable] = [lambda fn, *args: fn(*args)] # preload identity wrapper
+    _fn_wrappers: List[Callable] = [
+        lambda fn, *args: fn(*args)
+    ]  # preload identity wrapper
 
     def __init__(self, *args: Any) -> None:  # stages
         self._opaques = tuple()
